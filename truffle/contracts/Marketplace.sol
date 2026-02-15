@@ -64,4 +64,59 @@ contract Marketplace is ReentrancyGuard {
     _marketOwner = msg.sender;
   }
 
+  function isRentableNFT(address nftContract) public view returns(bool) {
+    bool _isRentable = false;
+    bool _isNFT = false;
+
+    try IERC165(nftContract).supportsInterface(type(IERC4907).interfaceId) returns (bool rentable) {
+        _isRentable  = rentable;
+    } catch {
+        return false;
+    }
+
+    try IERC165(nftContract).supportsInterface(type(IERC721).interfaceId) returns (bool nft) {
+        _isNFT  = nft;
+    } catch {
+       return false;
+    }
+
+    return _isRentable && _isNFT;
+  }
+
+  function listNFT(
+      address nftContract,
+      uint256 tokenId,
+      uint256 pricePerDay,
+      uint256 startDateUNIX,
+      uint256 endDateUNIX
+  ) public payable nonReentrant {
+      require(
+          isRentableNFT(nftContract),
+          "Contract is not an ERC4907"
+      );
+      require(
+          IERC721(nftContract).ownerOf(tokenId) == msg.sender,
+          "You are not the owner of the contract"
+      );
+      require(
+          msg.value == _listingFee,
+          "You havenot provided enough ether for listing"
+      );
+      require(
+        pricePerDay > 0,
+        "Rental price should be greater than 0"
+      );
+      require(
+          startDateUNIX >= block.timestamp,
+          "Start date cannot be in the past"
+      );
+      require(
+          endDateUNIX >= startDateUNIX,
+          "End date cannot be before the start date"
+      );
+      require(
+          _listingMap[nftContract][tokenId].nftContract == address(0),
+          "This NFT has been already listed"
+      );
+  }
 }
