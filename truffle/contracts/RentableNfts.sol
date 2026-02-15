@@ -7,8 +7,11 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 contract RentableNfts is ERC4907{
   using Counters for Counters.Counter;
   Counters.Counter private _tokenIds;
+  address private marketplaceContract;
 
-  constructor() ERC4907("RentableNfts", "RP")  {}
+  constructor(address _marketplaceContract) ERC4907("RentableNfts", "RP")  {
+      marketplaceContract = _marketplaceContract;
+  }
 
   function mint(string memory _tokenURI) public {
       _tokenIds.increment();

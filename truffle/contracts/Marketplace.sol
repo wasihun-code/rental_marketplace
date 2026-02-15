@@ -81,9 +81,14 @@ contract Marketplace is ReentrancyGuard {
     }
 
     return _isRentable && _isNFT;
-  }
+    }
 
-  function listNFT(
+    function getListingFee() public view returns (uint256) {
+        return _listingFee;
+    }
+
+
+  function listNft(
       address nftContract,
       uint256 tokenId,
       uint256 pricePerDay,
@@ -119,4 +124,38 @@ contract Marketplace is ReentrancyGuard {
           "This NFT has been already listed"
       );
   }
+
+  function rentNFT(
+      address nftContract,
+      uint256 tokenId,
+      uint64 expires
+  ) public payable nonReentrant {
+      Listing storage listing = _listingMap[nftContract][tokenId];
+
+      // check for compliances here later
+      
+      // Transfer rental fee
+      uint256 numDays = (expires - block.timestamp)/60/60/24 + 1;
+      uint256 rentalFee = listing.pricePerDay * numDays;
+      require(msg.value >= rentalFee, "not enough ether to cover rental fee");
+      payable(listing.owner).transfer(rentalFee); // convert this to call() later
+
+      // Update Listing
+      IERC4907(nftContract).setUser(tokenId, msg.sender, expires);
+      listing.user = msg.sender;
+      listing.expires = expires;
+
+      // emit event for frontend
+      emit nftRented(
+          IERC721(nftContract).ownerOf(tokenId),
+          msg.sender,
+          nftContract,
+          tokenId,
+          listing.startDateUNIX,
+          listing.endDateUNIX,
+          expires,
+          rentalFee
+      );
+  }
 }
+
