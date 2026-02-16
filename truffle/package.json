@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "description": "Truffle project with SimpleStorage contract",
   "scripts": {
-    "test": "truffle test"
+    "test": "truffle test",
+    "format": "prettier --write \"truffle/contracts/**/*.sol\"",
+    "format:check": "prettier --check \"truffle/contracts/**/*.sol\""
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.4.0",

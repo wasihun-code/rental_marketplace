@@ -12,15 +12,16 @@ contract ERC4907 is ERC721URIStorage, IERC4907 {
 
     mapping(uint256 => UserInfo) internal _users;
 
-
     constructor(
         string memory _name,
         string memory _symbol
-    ) ERC721(_name, _symbol) {
+    ) ERC721(_name, _symbol) {}
 
-    }
-
-    function setUser(uint256 tokenId, address user, uint64 expires) public virtual override {
+    function setUser(
+        uint256 tokenId,
+        address user,
+        uint64 expires
+    ) public virtual override {
         require(
             _isAuthorized(msg.sender, msg.sender, tokenId),
             "ERC721: transfer caller is not owner nor approved"
@@ -32,21 +33,25 @@ contract ERC4907 is ERC721URIStorage, IERC4907 {
         emit UpdateUser(tokenId, user, expires);
     }
 
-    function userOf(uint256 tokenId) public view override virtual returns (address) {
-        if (
-            uint256(_users[tokenId].expires) >= block.timestamp
-        ) {
+    function userOf(
+        uint256 tokenId
+    ) public view virtual override returns (address) {
+        if (uint256(_users[tokenId].expires) >= block.timestamp) {
             return _users[tokenId].user;
         } else {
             return address(0);
         }
     }
 
-    function userExpires(uint256 tokenId) public view virtual override returns(uint256) {
+    function userExpires(
+        uint256 tokenId
+    ) public view virtual override returns (uint256) {
         return _users[tokenId].expires;
     }
 
-    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override returns (bool) {
         return
             interfaceId == type(IERC4907).interfaceId ||
             super.supportsInterface(interfaceId);
