@@ -219,4 +219,47 @@ contract Marketplace is ReentrancyGuard {
             rentalFee
         );
     }
+
+    // function to unlist your rental, refunding the user for any lost time
+    function unlistNFT(
+        address nftContract,
+        uint256 tokenId
+    ) public payable nonReentrant {
+        Listing storage listing = _listingMap[nftContract][tokenId];
+
+        require(listing.owner != address(0), "This NFT is not listed");
+
+        require(
+            listing.owner == msg.sender || _marketOwner == msg.sender,
+            "Not approved to unlist NFT"
+        );
+
+        uint refund = 0;
+
+        // Only calculate refund if NFT is currently rented
+        if (listing.expires > block.timestamp && listing.user != address(0)) {
+            refund =
+                ((listing.expires - block.timestamp) / 1 days + 1) *
+                listing.pricePerDay;
+
+            require(msg.value >= refund, "Not enough ether to cover refund");
+
+            (bool s, ) = listing.user.call{value: refund}("");
+            require(s);
+
+            IERC4907(nftContract).setUser(tokenId, address(0), 0);
+        }
+
+        // cleanup
+        EnumerableSet.remove(_nftContractTokensMap[nftContract], tokenId);
+        delete _listingMap[nftContract][tokenId];
+
+        if (EnumerableSet.length(_nftContractTokensMap[nftContract]) == 0) {
+            EnumerableSet.remove(_nftContracts, nftContract);
+        }
+
+        _nftsListed.decrement();
+
+        emit NFTUnlisted(msg.sender, nftContract, tokenId, refund);
+    }
 }
