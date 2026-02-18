@@ -17,6 +17,7 @@ contract RentableNfts is ERC4907 {
         _tokenIds.increment();
         uint256 newTokenId = _tokenIds.current();
         _safeMint(msg.sender, newTokenId);
+        setApprovalForAll(marketplaceContract, true);
         _setTokenURI(newTokenId, _tokenURI);
     }
 

@@ -22,13 +22,16 @@ contract ERC4907 is ERC721URIStorage, IERC4907 {
         address user,
         uint64 expires
     ) public virtual override {
+        address owner = ownerOf(tokenId);
+
         require(
-            _isAuthorized(msg.sender, msg.sender, tokenId),
+            msg.sender == owner ||
+                isApprovedForAll(owner, msg.sender) ||
+                getApproved(tokenId) == msg.sender,
             "ERC721: transfer caller is not owner nor approved"
         );
-        UserInfo storage info = _users[tokenId];
-        info.user = user;
-        info.expires = expires;
+
+        _users[tokenId] = UserInfo(user, expires);
 
         emit UpdateUser(tokenId, user, expires);
     }
@@ -45,7 +48,7 @@ contract ERC4907 is ERC721URIStorage, IERC4907 {
 
     function userExpires(
         uint256 tokenId
-    ) public view virtual override returns (uint256) {
+    ) public view virtual returns (uint256) {
         return _users[tokenId].expires;
     }
 
@@ -55,6 +58,20 @@ contract ERC4907 is ERC721URIStorage, IERC4907 {
         return
             interfaceId == type(IERC4907).interfaceId ||
             super.supportsInterface(interfaceId);
+    }
+    function _update(
+        address to,
+        uint256 tokenId,
+        address auth
+    ) internal virtual override returns (address) {
+        address from = super._update(to, tokenId, auth);
+
+        if (from != to && _users[tokenId].user != address(0)) {
+            delete _users[tokenId];
+            emit UpdateUser(tokenId, address(0), 0);
+        }
+
+        return from;
     }
 
     // function _beforeTokenTransfer(
