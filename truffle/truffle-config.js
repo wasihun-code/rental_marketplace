@@ -45,6 +45,8 @@
 // const { MNEMONIC, PROJECT_ID } = process.env;
 
 // const HDWalletProvider = require('@truffle/hdwallet-provider');
+require("dotenv").config();
+const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 
 module.exports = {
   /**
@@ -71,6 +73,12 @@ module.exports = {
     //  network_id: "*",       // Any network (default: none)
     // },
     //
+    sepoliadev: {
+      host: "127.0.0.1", // Localhost (default: none)
+      port: 7545, // Standard Ethereum port (default: none)
+      network_id: "*", // Any network (default: none)
+    },
+
     // An additional network, but with some advanced options…
     // advanced: {
     //   port: 8777,             // Custom port
@@ -117,6 +125,12 @@ module.exports = {
       //  evmVersion: "byzantium"
       // }
     },
+  },
+
+  plugins: ["truffle-plugin-verify"],
+
+  api_keys: {
+    etherscan: ETHERSCAN_API_KEY,
   },
 
   // Truffle DB is currently disabled by default; to enable it, change enabled:

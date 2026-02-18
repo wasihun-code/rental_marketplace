@@ -9,9 +9,11 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.4.0",
-    "@truffle/hdwallet-provider": "^2.1.7"
+    "@truffle/hdwallet-provider": "^2.1.7",
+    "dotenv": "^17.3.1"
   },
   "devDependencies": {
-    "@openzeppelin/test-helpers": "^0.5.16"
+    "@openzeppelin/test-helpers": "^0.5.16",
+    "truffle-plugin-verify": "^0.6.7"
   }
 }
